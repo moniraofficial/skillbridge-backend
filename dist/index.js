@@ -681,7 +681,7 @@ const startServer = async () => {
             try {
                 const { id } = req.params;
                 // আইডি ভ্যালিডেশন চেক
-                if (!id || !mongodb_1.ObjectId.isValid(id)) {
+                if (!id || typeof id !== 'string' || !mongodb_1.ObjectId.isValid(id)) {
                     res.status(400).json({ message: "Invalid Skill ID format" });
                     return;
                 }

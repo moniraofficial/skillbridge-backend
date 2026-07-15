@@ -707,7 +707,7 @@ const client = new MongoClient(MONGODB_URI);
 const startServer = async () => {
   try {
     // ১. ডাটাবেজ কানেক্ট করা
-    await client.connect();
+    // await client.connect();
     console.log("Backend: Connected to MongoDB via Native Driver! 🎉");
 
     // নির্দিষ্ট ডাটাবেজ এবং কালেকশন সিলেক্ট করা
