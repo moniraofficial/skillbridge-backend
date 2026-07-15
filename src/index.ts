@@ -681,178 +681,6 @@
 
 // startServer();
 
-// import * as dns from 'node:dns';
-// // DNS এরর হ্যান্ডলিং
-// dns.setServers(["8.8.8.8", "8.8.4.4"]);
-
-// import express, { Request, Response } from 'express';
-// import { MongoClient, ObjectId } from 'mongodb'; // ObjectId ইম্পোর্ট করা হলো আইডি দিয়ে ডিলিট করার জন্য
-// import cors from 'cors';
-// import * as dotenv from 'dotenv';
-
-// dotenv.config();
-
-// const app = express();
-
-// // মিডলওয়্যার (CORS একদম ওপেন রাখা হলো যাতে ফ্রন্টএন্ড থেকে ব্লক না হয়)
-// app.use(cors());
-// app.use(express.json());
-
-// // ডাটাবেজ লিংক
-// const MONGODB_URI = 'mongodb+srv://skillbridge:9cjFL69wXk75QmAf@cluster0.bqdv3wt.mongodb.net/skillbridge?retryWrites=true&w=majority&appName=Cluster0';
-
-// // মঙ্গোডিবি ক্লায়েন্ট ইনিশিয়েট করা
-// const client = new MongoClient(MONGODB_URI);
-
-// const startServer = async () => {
-//   try {
-//     // ১. ডাটাবেজ কানেক্ট করা
-//     // await client.connect();
-//     console.log("Backend: Connected to MongoDB via Native Driver! 🎉");
-
-//     // নির্দিষ্ট ডাটাবেজ এবং কালেকশন সিলেক্ট করা
-//     const db = client.db('skillbridge');
-//     const skillsCollection = db.collection('skills');
-//     const subscribersCollection = db.collection('subscribers'); // নিউজলেটার সাবস্ক্রাইবারদের জন্য নতুন কালেকশন
-
-//     // ২. রিয়েল এপিআই এন্ডপয়েন্ট (এটি সরাসরি মঙ্গোডিবি 'skills' কালেকশন থেকে ডাটা টানবে)
-//     app.get('/api/skills', async (req: Request, res: Response) => {
-//       try {
-//         // কোনো স্কিমা ঝামেলা ছাড়াই সরাসরি কালেকশনের সব ডাটা অ্যারে আকারে নিয়ে আসা
-//         const skills = await skillsCollection.find({}).toArray();
-        
-//         console.log(`Successfully fetched ${skills.length} skills for frontend.`);
-        
-//         // ফ্রন্টএন্ডে ডাটা রেসপন্স পাঠানো
-//         res.status(200).json(skills);
-//       } catch (error: any) {
-//         console.error("Error fetching skills from DB:", error);
-//         res.status(500).json({ 
-//           message: "Error fetching skills from DB", 
-//           error: error.message 
-//         });
-//       }
-//     });
-
-//     // 🌟 ৩. নতুন স্কিল বা আইটেম যোগ করার জন্য POST API এন্ডপয়েন্ট
-//     app.post('/api/skills', async (req: Request, res: Response) => {
-//       try {
-//         const newSkillData = req.body;
-
-//         // কোনো প্রকার ভ্যালিডেশন এরর বা ক্র্যাশ এড়াতে মিনিমাম চেক
-//         if (!newSkillData.title) {
-//           res.status(400).json({ message: "Skill title is required." });
-//           return;
-//         }
-
-//         // মঙ্গোডিবি ড্রাইভারের মাধ্যমে সরাসরি ডাটা ইনসার্ট করা
-//         const result = await skillsCollection.insertOne(newSkillData);
-        
-//         console.log(`Successfully added a new skill with ID: ${result.insertedId}`);
-        
-//         // ফ্রন্টএন্ডে রেসপন্স পাঠানো
-//         res.status(201).json({
-//           message: "New skill added successfully!",
-//           insertedId: result.insertedId,
-//           data: newSkillData
-//         });
-//       } catch (error: any) {
-//         console.error("Error inserting skill into DB:", error);
-//         res.status(500).json({
-//           message: "Error inserting skill into DB",
-//           error: error.message
-//         });
-//       }
-//     });
-
-//     // 🌟 ৪. আইডি ধরে নির্দিষ্ট স্কিল ডিলিট করার জন্য DELETE API এন্ডপয়েন্ট
-//     app.delete('/api/skills/:id', async (req: Request, res: Response) => {
-//       try {
-//         const { id } = req.params;
-
-//         // আইডি ভ্যালিডেশন চেক
-//         if (!id || typeof id !== 'string' || !ObjectId.isValid(id)) {
-//           res.status(400).json({ message: "Invalid Skill ID format" });
-//           return;
-//         }
-
-//         // মঙ্গোডিবি থেকে নির্দিষ্ট আইডি অনুযায়ী ডিলিট করা
-//         const result = await skillsCollection.deleteOne({ _id: new ObjectId(id) });
-
-//         if (result.deletedCount === 0) {
-//           res.status(404).json({ message: "Skill not found" });
-//           return;
-//         }
-
-//         console.log(`Successfully deleted skill with ID: ${id}`);
-//         res.status(200).json({ message: "Skill deleted successfully!" });
-//       } catch (error: any) {
-//         console.error("Error deleting skill from DB:", error);
-//         res.status(500).json({
-//           message: "Error deleting skill from DB",
-//           error: error.message
-//         });
-//       }
-//     });
-
-//     // 🌟 [নতুন সংযোজন] ৫. নিউজলেটার সাবস্ক্রিপশন স্টোর করার জন্য POST API এন্ডপয়েন্ট
-//     app.post('/api/subscribe', async (req: Request, res: Response) => {
-//       try {
-//         const { email } = req.body;
-
-//         // ইমেইল ইনপুট চেক
-//         if (!email) {
-//           res.status(400).json({ message: "Email is required." });
-//           return;
-//         }
-
-//         // ইমেইলটি অলরেডি সাবস্ক্রাইব করা আছে কি না চেক করা (কেস-সেন্সিটিভ ইস্যু এড়াতে lowercase করা হলো)
-//         const existingSubscriber = await subscribersCollection.findOne({ email: email.toLowerCase() });
-        
-//         if (existingSubscriber) {
-//           res.status(400).json({ message: "This email is already subscribed! 📧" });
-//           return;
-//         }
-
-//         // ডাটাবেজে নতুন সাবস্ক্রাইবার হিসেবে ইমেইল এবং সাবস্ক্রাইব করার টাইমস্ট্যাম্প সেভ করা
-//         const result = await subscribersCollection.insertOne({
-//           email: email.toLowerCase(),
-//           subscribedAt: new Date()
-//         });
-
-//         console.log(`New subscriber added with ID: ${result.insertedId}`);
-
-//         res.status(201).json({
-//           message: "Subscribed successfully! 🎉 Welcome to our newsletter.",
-//           insertedId: result.insertedId
-//         });
-//       } catch (error: any) {
-//         console.error("Error saving subscriber to DB:", error);
-//         res.status(500).json({
-//           message: "Server error, please try again later.",
-//           error: error.message
-//         });
-//       }
-//     });
-
-//     // রুট ইউআরএল চেক
-//     app.get('/', (req: Request, res: Response) => {
-//       res.send("SkillBridge Backend Server is Running Perfectly via Native MongoDB Driver with Subscribers Support! 🚀");
-//     });
-
-//     // সার্ভার লিসেন করা
-//     app.listen(5000, () => console.log("Backend running on port 5000 🚀"));
-//   } catch (err: any) {
-//     console.error("MongoDB Connection Failed: ", err.message);
-//     process.exit(1);
-//   }
-// };
-
-// startServer();
-
-
-
-
 import * as dns from 'node:dns';
 // DNS এরর হ্যান্ডলিং
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
@@ -866,16 +694,8 @@ dotenv.config();
 
 const app = express();
 
-// মিডলওয়্যার (CORS আপডেট করা হলো যাতে ফ্রন্টএন্ড থেকে ব্লক না হয়)
-app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'https://skillbridge-frontend-iota-one.vercel.app'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true
-}));
-
+// মিডলওয়্যার (CORS একদম ওপেন রাখা হলো যাতে ফ্রন্টএন্ড থেকে ব্লক না হয়)
+app.use(cors());
 app.use(express.json());
 
 // ডাটাবেজ লিংক
@@ -986,7 +806,7 @@ const startServer = async () => {
           return;
         }
 
-        // ইমেইলটি অলরেডি সাবস্ক্রাইব করা আছে কি না চেক করা (কেস-সেন্সিটিভ ইস্যু এড়াতে lowercase করা হলো)
+        // ইমেইলটি অলরেডি সাবস্ক্রাইব করা আছে কি না চেক করা (কেস-সেন্সিটিভ ইস্যু এড়াতে lowercase করা হলো)
         const existingSubscriber = await subscribersCollection.findOne({ email: email.toLowerCase() });
         
         if (existingSubscriber) {
@@ -1029,3 +849,183 @@ const startServer = async () => {
 };
 
 startServer();
+
+
+
+
+// import * as dns from 'node:dns';
+// // DNS এরর হ্যান্ডলিং
+// dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
+// import express, { Request, Response } from 'express';
+// import { MongoClient, ObjectId } from 'mongodb'; // ObjectId ইম্পোর্ট করা হলো আইডি দিয়ে ডিলিট করার জন্য
+// import cors from 'cors';
+// import * as dotenv from 'dotenv';
+
+// dotenv.config();
+
+// const app = express();
+
+// // মিডলওয়্যার (CORS আপডেট করা হলো যাতে ফ্রন্টএন্ড থেকে ব্লক না হয়)
+// app.use(cors({
+//   origin: [
+//     'http://localhost:3000', 
+//     'https://skillbridge-frontend-iota-one.vercel.app'
+//   ],
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   credentials: true
+// }));
+
+// app.use(express.json());
+
+// // ডাটাবেজ লিংক
+// const MONGODB_URI = 'mongodb+srv://skillbridge:9cjFL69wXk75QmAf@cluster0.bqdv3wt.mongodb.net/skillbridge?retryWrites=true&w=majority&appName=Cluster0';
+
+// // মঙ্গোডিবি ক্লায়েন্ট ইনিশিয়েট করা
+// const client = new MongoClient(MONGODB_URI);
+
+// const startServer = async () => {
+//   try {
+//     // ১. ডাটাবেজ কানেক্ট করা
+//     // await client.connect();
+//     console.log("Backend: Connected to MongoDB via Native Driver! 🎉");
+
+//     // নির্দিষ্ট ডাটাবেজ এবং কালেকশন সিলেক্ট করা
+//     const db = client.db('skillbridge');
+//     const skillsCollection = db.collection('skills');
+//     const subscribersCollection = db.collection('subscribers'); // নিউজলেটার সাবস্ক্রাইবারদের জন্য নতুন কালেকশন
+
+//     // ২. রিয়েল এপিআই এন্ডপয়েন্ট (এটি সরাসরি মঙ্গোডিবি 'skills' কালেকশন থেকে ডাটা টানবে)
+//     app.get('/api/skills', async (req: Request, res: Response) => {
+//       try {
+//         // কোনো স্কিমা ঝামেলা ছাড়াই সরাসরি কালেকশনের সব ডাটা অ্যারে আকারে নিয়ে আসা
+//         const skills = await skillsCollection.find({}).toArray();
+        
+//         console.log(`Successfully fetched ${skills.length} skills for frontend.`);
+        
+//         // ফ্রন্টএন্ডে ডাটা রেসপন্স পাঠানো
+//         res.status(200).json(skills);
+//       } catch (error: any) {
+//         console.error("Error fetching skills from DB:", error);
+//         res.status(500).json({ 
+//           message: "Error fetching skills from DB", 
+//           error: error.message 
+//         });
+//       }
+//     });
+
+//     // 🌟 ৩. নতুন স্কিল বা আইটেম যোগ করার জন্য POST API এন্ডপয়েন্ট
+//     app.post('/api/skills', async (req: Request, res: Response) => {
+//       try {
+//         const newSkillData = req.body;
+
+//         // কোনো প্রকার ভ্যালিডেশন এরর বা ক্র্যাশ এড়াতে মিনিমাম চেক
+//         if (!newSkillData.title) {
+//           res.status(400).json({ message: "Skill title is required." });
+//           return;
+//         }
+
+//         // মঙ্গোডিবি ড্রাইভারের মাধ্যমে সরাসরি ডাটা ইনসার্ট করা
+//         const result = await skillsCollection.insertOne(newSkillData);
+        
+//         console.log(`Successfully added a new skill with ID: ${result.insertedId}`);
+        
+//         // ফ্রন্টএন্ডে রেসপন্স পাঠানো
+//         res.status(201).json({
+//           message: "New skill added successfully!",
+//           insertedId: result.insertedId,
+//           data: newSkillData
+//         });
+//       } catch (error: any) {
+//         console.error("Error inserting skill into DB:", error);
+//         res.status(500).json({
+//           message: "Error inserting skill into DB",
+//           error: error.message
+//         });
+//       }
+//     });
+
+//     // 🌟 ৪. আইডি ধরে নির্দিষ্ট স্কিল ডিলিট করার জন্য DELETE API এন্ডপয়েন্ট
+//     app.delete('/api/skills/:id', async (req: Request, res: Response) => {
+//       try {
+//         const { id } = req.params;
+
+//         // আইডি ভ্যালিডেশন চেক
+//         if (!id || typeof id !== 'string' || !ObjectId.isValid(id)) {
+//           res.status(400).json({ message: "Invalid Skill ID format" });
+//           return;
+//         }
+
+//         // মঙ্গোডিবি থেকে নির্দিষ্ট আইডি অনুযায়ী ডিলিট করা
+//         const result = await skillsCollection.deleteOne({ _id: new ObjectId(id) });
+
+//         if (result.deletedCount === 0) {
+//           res.status(404).json({ message: "Skill not found" });
+//           return;
+//         }
+
+//         console.log(`Successfully deleted skill with ID: ${id}`);
+//         res.status(200).json({ message: "Skill deleted successfully!" });
+//       } catch (error: any) {
+//         console.error("Error deleting skill from DB:", error);
+//         res.status(500).json({
+//           message: "Error deleting skill from DB",
+//           error: error.message
+//         });
+//       }
+//     });
+
+//     // 🌟 [নতুন সংযোজন] ৫. নিউজলেটার সাবস্ক্রিপশন স্টোর করার জন্য POST API এন্ডপয়েন্ট
+//     app.post('/api/subscribe', async (req: Request, res: Response) => {
+//       try {
+//         const { email } = req.body;
+
+//         // ইমেইল ইনপুট চেক
+//         if (!email) {
+//           res.status(400).json({ message: "Email is required." });
+//           return;
+//         }
+
+//         // ইমেইলটি অলরেডি সাবস্ক্রাইব করা আছে কি না চেক করা (কেস-সেন্সিটিভ ইস্যু এড়াতে lowercase করা হলো)
+//         const existingSubscriber = await subscribersCollection.findOne({ email: email.toLowerCase() });
+        
+//         if (existingSubscriber) {
+//           res.status(400).json({ message: "This email is already subscribed! 📧" });
+//           return;
+//         }
+
+//         // ডাটাবেজে নতুন সাবস্ক্রাইবার হিসেবে ইমেইল এবং সাবস্ক্রাইব করার টাইমস্ট্যাম্প সেভ করা
+//         const result = await subscribersCollection.insertOne({
+//           email: email.toLowerCase(),
+//           subscribedAt: new Date()
+//         });
+
+//         console.log(`New subscriber added with ID: ${result.insertedId}`);
+
+//         res.status(201).json({
+//           message: "Subscribed successfully! 🎉 Welcome to our newsletter.",
+//           insertedId: result.insertedId
+//         });
+//       } catch (error: any) {
+//         console.error("Error saving subscriber to DB:", error);
+//         res.status(500).json({
+//           message: "Server error, please try again later.",
+//           error: error.message
+//         });
+//       }
+//     });
+
+//     // রুট ইউআরএল চেক
+//     app.get('/', (req: Request, res: Response) => {
+//       res.send("SkillBridge Backend Server is Running Perfectly via Native MongoDB Driver with Subscribers Support! 🚀");
+//     });
+
+//     // সার্ভার লিসেন করা
+//     app.listen(5000, () => console.log("Backend running on port 5000 🚀"));
+//   } catch (err: any) {
+//     console.error("MongoDB Connection Failed: ", err.message);
+//     process.exit(1);
+//   }
+// };
+
+// startServer();
